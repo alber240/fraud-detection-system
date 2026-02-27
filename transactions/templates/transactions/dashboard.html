@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Fraud Detection Dashboard</title>
+    <style>
+        table { border-collapse: collapse; width: 100%; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #f2f2f2; }
+        .fraud { background-color: #ffdddd; }
+        .legit { background-color: #ddffdd; }
+    </style>
+</head>
+<body>
+    <h1>Transaction Dashboard</h1>
+    <p>Total Transactions: {{ total_count }}</p>
+    <p>Predicted Fraud: {{ fraud_count }}</p>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Amount</th>
+                <th>Timestamp</th>
+                <th>Prediction</th>
+                <th>Probability</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in transactions %}
+            <tr class="{% if t.prediction %}fraud{% else %}legit{% endif %}">
+                <td>{{ t.transaction_id }}</td>
+                <td>${{ t.amount }}</td>
+                <td>{{ t.timestamp }}</td>
+                <td>{{ t.prediction|yesno:"Fraud,Legit" }}</td>
+                <td>{{ t.probability|floatformat:4 }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</body>
+</html>
