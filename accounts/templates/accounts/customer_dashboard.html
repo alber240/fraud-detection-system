@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>My Accounts</h2>
+    {% if customer %}
+        <p>KYC Status: {{ customer.get_kyc_status_display }}</p>
+
+        {% if customer.profile_image %}
+            <div class="mb-3">
+                <img src="{{ customer.profile_image.url }}" alt="Profile Picture" class="img-thumbnail" style="max-width: 200px;">
+            </div>
+        {% else %}
+            <p class="text-muted">No profile image uploaded.</p>
+        {% endif %}
+
+        <div class="row">
+            {% for account in accounts %}
+                <div class="col-md-4">
+                    <div class="card mb-3">
+                        <div class="card-body">
+                            <h5 class="card-title">{{ account.get_account_type_display }}</h5>
+                            <p class="card-text">Account Number: {{ account.account_number }}</p>
+                            <p class="card-text">Balance: ${{ account.balance }}</p>
+                        </div>
+                    </div>
+                </div>
+            {% empty %}
+                <p>No accounts yet.</p>
+            {% endfor %}
+        </div>
+
+        <h3 class="mt-4">Recent Transactions</h3>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>From</th>
+                    <th>To</th>
+                    <th>Amount</th>
+                    <th>Description</th>
+                    <th>Fraud Risk</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>{{ t.timestamp }}</td>
+                    <td>{{ t.get_transaction_type_display }}</td>
+                    <td>{{ t.from_account.account_number|default:"-" }}</td>
+                    <td>{{ t.to_account.account_number|default:"-" }}</td>
+                    <td>${{ t.amount }}</td>
+                    <td>{{ t.description }}</td>
+                    <td>
+                        {% if t.fraud_prediction %}
+                            <span class="badge bg-danger">High</span>
+                        {% else %}
+                            <span class="badge bg-success">Low</span>
+                        {% endif %}
+                        ({{ t.fraud_probability|floatformat:2 }})
+                    </td>
+                </tr>
+                {% empty %}
+                <tr><td colspan="7">No transactions yet.</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% else %}
+        <p>You are not a customer. <a href="{% url 'register' %}">Register here</a>.</p>
+    {% endif %}
+</div>
+{% endblock %}

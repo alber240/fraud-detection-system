@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Network Security Events (Simulated)</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Timestamp</th>
+                <th>Event Type</th>
+                <th>Source IP</th>
+                <th>Description</th>
+                <th>Severity</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for event in events %}
+            <tr class="table-{% if event.severity == 'high' %}danger{% elif event.severity == 'medium' %}warning{% else %}info{% endif %}">
+                <td>{{ event.timestamp }}</td>
+                <td>{{ event.event_type }}</td>
+                <td>{{ event.source_ip }}</td>
+                <td>{{ event.description }}</td>
+                <td>{{ event.get_severity_display }}</td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="5">No events. Run `python manage.py simulate_network_events` to generate.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

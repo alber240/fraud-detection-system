@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Hero Section -->
+    <div class="row p-5 mb-4 bg-light rounded-3">
+        <div class="col-md-8">
+            <h1 class="display-4">Welcome to SecureBank</h1>
+            <p class="lead">Your trusted partner in secure digital banking with AI‑powered fraud detection.</p>
+            <hr class="my-4">
+            <p>Open an account today and experience next‑generation security.</p>
+            <a class="btn btn-primary btn-lg me-2" href="{% url 'register' %}" role="button">Open Account</a>
+            <a class="btn btn-secondary btn-lg" href="{% url 'login' %}" role="button">Login</a>
+        </div>
+        <div class="col-md-4 d-none d-md-block text-center">
+            <i class="fas fa-shield-alt fa-8x text-primary"></i>
+        </div>
+    </div>
+
+    <!-- Features Section -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 text-center p-3">
+                <i class="fas fa-robot fa-3x text-primary mb-3"></i>
+                <h3>AI Fraud Detection</h3>
+                <p>Our machine learning models analyze every transaction in real‑time to block fraud before it happens.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 text-center p-3">
+                <i class="fas fa-bolt fa-3x text-warning mb-3"></i>
+                <h3>Instant Transactions</h3>
+                <p>Deposit, withdraw, and transfer funds instantly with our secure banking platform.</p>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="card h-100 text-center p-3">
+                <i class="fas fa-lock fa-3x text-success mb-3"></i>
+                <h3>Bank‑Grade Security</h3>
+                <p>Your data is encrypted and protected with multi‑factor authentication and continuous monitoring.</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Interactive Sections (clickable cards) -->
+    <div class="row mb-5">
+        <div class="col-md-4 mb-3">
+            <div class="card" data-bs-toggle="collapse" data-bs-target="#aboutCollapse" style="cursor: pointer;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">About Us</h5>
+                    <p class="card-text">Click to learn more about SecureBank</p>
+                </div>
+            </div>
+            <div class="collapse mt-2" id="aboutCollapse">
+                <div class="card card-body">
+                    <p>SecureBank is a next‑generation digital bank headquartered in Rwanda. We combine cutting‑edge machine learning with robust cybersecurity to provide a safe and seamless banking experience. Our mission is to make financial services accessible and fraud‑free for everyone.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card" data-bs-toggle="collapse" data-bs-target="#contactCollapse" style="cursor: pointer;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Contact Us</h5>
+                    <p class="card-text">Click to reveal contact information</p>
+                </div>
+            </div>
+            <div class="collapse mt-2" id="contactCollapse">
+                <div class="card card-body">
+                    <p><strong>Email:</strong> support@securebank.com</p>
+                    <p><strong>Phone:</strong> +250 788 123 456</p>
+                    <p><strong>Address:</strong> KG 220 St, Kigali, Rwanda</p>
+                    <p><strong>Support Hours:</strong> 24/7</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <div class="card" data-bs-toggle="collapse" data-bs-target="#servicesCollapse" style="cursor: pointer;">
+                <div class="card-body text-center">
+                    <h5 class="card-title">Our Services</h5>
+                    <p class="card-text">Click to see what we offer</p>
+                </div>
+            </div>
+            <div class="collapse mt-2" id="servicesCollapse">
+                <div class="card card-body">
+                    <ul>
+                        <li>Personal Checking & Savings Accounts</li>
+                        <li>Instant Deposits & Withdrawals</li>
+                        <li>Free Internal Transfers</li>
+                        <li>AI‑Powered Fraud Monitoring</li>
+                        <li>24/7 Customer Support</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

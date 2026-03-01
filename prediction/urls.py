@@ -1,6 +1,9 @@
 from django.urls import path
-from .views import predict_transaction
+from . import views
 
 urlpatterns = [
-    path('predict/', predict_transaction, name='predict'),
+    path('predict/', views.predict_transaction, name='predict'),
+    path('alerts/', views.alert_list, name='alert_list'),
+    path('alerts/acknowledge/<int:alert_id>/', views.acknowledge_alert, name='acknowledge_alert'),
+    path('network/', views.network_security, name='network_security'),
 ]

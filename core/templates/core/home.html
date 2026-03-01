@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="jumbotron text-center">
+    <h1 class="display-4">Welcome to SecureBank</h1>
+    <p class="lead">Advanced Fraud Detection System using Machine Learning</p>
+    <hr class="my-4">
+    <p>Your security is our priority. We use state-of-the-art AI to protect your transactions.</p>
+    <a class="btn btn-primary btn-lg" href="{% url 'register' %}" role="button">Open an Account</a>
+    <a class="btn btn-secondary btn-lg" href="{% url 'login' %}" role="button">Login</a>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <h3>About Us</h3>
+        <p>SecureBank is a next-generation digital bank focused on security and innovation.</p>
+    </div>
+    <div class="col-md-4">
+        <h3>Contact</h3>
+        <p>Email: support@securebank.com<br>Phone: +250 788 123 456</p>
+    </div>
+    <div class="col-md-4">
+        <h3>Our Technology</h3>
+        <p>We employ machine learning models to detect and prevent fraud in real-time.</p>
+    </div>
+</div>
+{% endblock %}

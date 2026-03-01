@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Fraud Alerts</h2>
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>Transaction ID</th>
+                <th>Amount</th>
+                <th>Timestamp</th>
+                <th>Probability</th>
+                <th>Acknowledged</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for alert in alerts %}
+            <tr>
+                <td>{{ alert.transaction.transaction_id }}</td>
+                <td>${{ alert.transaction.amount }}</td>
+                <td>{{ alert.transaction.timestamp }}</td>
+                <td>{{ alert.transaction.probability|floatformat:2 }}</td>
+                <td>
+                    {% if alert.acknowledged %}
+                        Yes (by {{ alert.acknowledged_by.username }})
+                    {% else %}
+                        <span class="badge bg-danger">Pending</span>
+                    {% endif %}
+                </td>
+                <td>
+                    {% if not alert.acknowledged %}
+                        <a href="{% url 'acknowledge_alert' alert.id %}" class="btn btn-sm btn-primary">Acknowledge</a>
+                    {% endif %}
+                </td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="6">No alerts.</td></tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

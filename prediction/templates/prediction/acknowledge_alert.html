@@ -1,0 +1,17 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Acknowledge Alert</h2>
+    <p>Transaction: {{ alert.transaction.transaction_id }} (Amount: ${{ alert.transaction.amount }})</p>
+    <form method="post">
+        {% csrf_token %}
+        <div class="mb-3">
+            <label for="notes" class="form-label">Resolution Notes</label>
+            <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+        </div>
+        <button type="submit" class="btn btn-success">Confirm Acknowledge</button>
+        <a href="{% url 'alert_list' %}" class="btn btn-secondary">Cancel</a>
+    </form>
+</div>
+{% endblock %}
