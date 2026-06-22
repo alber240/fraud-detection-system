@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header">
+            <h4><i class="fas fa-download me-2"></i>Export Flagged Transactions</h4>
+        </div>
+        <div class="card-body">
+            <form method="get" action="{% url 'export_flagged' %}">
+                <div class="row">
+                    <div class="col-md-3">
+                        <label class="form-label">Status Filter</label>
+                        <select name="status" class="form-select">
+                            <option value="all">All Flagged</option>
+                            <option value="pending">Pending Review</option>
+                            <option value="approved">Approved</option>
+                            <option value="blocked">Blocked</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date From</label>
+                        <input type="date" name="date_from" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Date To</label>
+                        <input type="date" name="date_to" class="form-control">
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">&nbsp;</label>
+                        <button type="submit" class="btn btn-primary d-block w-100">
+                            <i class="fas fa-download me-1"></i>Download CSV
+                        </button>
+                    </div>
+                </div>
+            </form>
+            
+            <hr>
+            
+            <div class="alert alert-info">
+                <strong>Export Information:</strong>
+                <ul class="mb-0 mt-2">
+                    <li>Exports all transactions flagged as fraud (prediction=True or probability > 50%)</li>
+                    <li>Includes feature engineering data (time-based, amount-based, cumulative, recency)</li>
+                    <li>File format: CSV compatible with Excel and data analysis tools</li>
+                    <li>Filename includes timestamp: flagged_transactions_YYYYMMDD_HHMMSS.csv</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{% url 'review_queue' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Review Queue
+        </a>
+    </div>
+</div>
+{% endblock %}

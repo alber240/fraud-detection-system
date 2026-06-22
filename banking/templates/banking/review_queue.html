@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-clipboard-list me-2"></i>Manual Review Queue</h2>
+    <p class="text-muted">Review suspicious transactions flagged for analyst attention</p>
+    
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-2">
+            <div class="card text-center bg-warning">
+                <div class="card-body">
+                    <h3>{{ stats.pending_count }}</h3>
+                    <small>Pending Review</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-success text-white">
+                <div class="card-body">
+                    <h3>{{ stats.approved_count }}</h3>
+                    <small>Approved</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-danger text-white">
+                <div class="card-body">
+                    <h3>{{ stats.blocked_count }}</h3>
+                    <small>Blocked</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-info text-white">
+                <div class="card-body">
+                    <h3>{{ stats.investigating_count }}</h3>
+                    <small>Investigating</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-danger">
+                <div class="card-body">
+                    <h3>{{ stats.high_risk_pending }}</h3>
+                    <small>High Risk Pending</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-2">
+            <div class="card text-center bg-warning">
+                <div class="card-body">
+                    <h3>{{ stats.medium_risk_pending }}</h3>
+                    <small>Medium Risk Pending</small>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Transactions Table -->
+    <div class="card">
+        <div class="card-header">
+            <h5><i class="fas fa-clock me-2"></i>Pending Review Transactions</h5>
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Transaction ID</th>
+                            <th>Amount</th>
+                            <th>Type</th>
+                            <th>Date</th>
+                            <th>Risk Score</th>
+                            <th>Prediction</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for t in transactions %}
+                        <tr class="{% if t.fraud_probability > 0.8 %}table-danger{% elif t.fraud_probability > 0.5 %}table-warning{% endif %}">
+                            <td>{{ t.transaction_id|slice:":8" }}...</td>
+                            <td>${{ t.amount|floatformat:2 }}</td>
+                            <td>{{ t.transaction_type|title }}</td>
+                            <td>{{ t.timestamp|date:"Y-m-d H:i" }}</td>
+                            <td>
+                                <span class="badge {% if t.fraud_probability > 0.8 %}bg-danger{% elif t.fraud_probability > 0.5 %}bg-warning{% else %}bg-success{% endif %}">
+                                    {{ t.fraud_probability|floatformat:1 }}%
+                                </span>
+                            </td>
+                            <td>
+                                {% if t.fraud_prediction %}
+                                    <span class="badge bg-danger">Fraud</span>
+                                {% else %}
+                                    <span class="badge bg-success">Legit</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="badge {% if t.review_status == 'pending' %}bg-warning{% elif t.review_status == 'approved' %}bg-success{% elif t.review_status == 'blocked' %}bg-danger{% else %}bg-info{% endif %}">
+                                    {{ t.get_review_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'review_transaction' t.id %}" class="btn btn-sm btn-primary">
+                                    <i class="fas fa-eye"></i> Review
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center py-4">
+                                <i class="fas fa-check-circle fa-2x text-success mb-2 d-block"></i>
+                                No transactions pending review. All caught up!
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

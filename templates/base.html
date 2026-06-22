@@ -3,126 +3,637 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Fraud Detection System{% endblock %}</title>
+    <title>{% block title %}SecureBank | AI Fraud Detection System{% endblock %}</title>
+    
     <!-- Bootstrap 5 CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    
+    <!-- Font Awesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
-    <!-- Chart.js (if you want charts on all pages, otherwise move to specific templates) -->
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
     {% block extra_css %}{% endblock %}
+    
     <style>
-        /* Add any global custom styles here */
-        .kpi-card {
-            border-radius: 10px;
+        * {
+            font-family: 'Inter', sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #e9edf2 100%);
+            min-height: 100vh;
+        }
+        
+        /* ============================================
+           SIDEBAR NAVIGATION (Professional Layout)
+           ============================================ */
+        
+        /* Wrapper for sidebar + content */
+        .wrapper {
+            display: flex;
+            width: 100%;
+            min-height: 100vh;
+        }
+        
+        /* Sidebar Styles */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #0a2540 0%, #0d1f2d 100%);
+            color: white;
+            transition: all 0.3s;
+            position: fixed;
+            height: 100vh;
+            z-index: 1000;
+            box-shadow: 2px 0 20px rgba(0,0,0,0.1);
+            overflow-y: auto;
+        }
+        
+        .sidebar-header {
             padding: 20px;
-            margin: 10px 0;
+            text-align: center;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            margin-bottom: 20px;
+        }
+        
+        .sidebar-header h3 {
+            font-weight: 800;
+            margin: 0;
+            font-size: 1.3rem;
+        }
+        
+        .sidebar-header h3 i {
+            color: #4CAF50;
+            margin-right: 8px;
+        }
+        
+        .sidebar-header p {
+            font-size: 0.7rem;
+            opacity: 0.7;
+            margin-top: 5px;
+            margin-bottom: 0;
+        }
+        
+        /* Sidebar Navigation */
+        .sidebar-nav {
+            padding: 0 15px;
+        }
+        
+        .nav-section {
+            margin-bottom: 20px;
+        }
+        
+        .nav-section-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: rgba(255,255,255,0.5);
+            padding: 10px 15px 5px;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav .nav-item {
+            width: 100%;
+            margin-bottom: 5px;
+        }
+        
+        .sidebar-nav .nav-link {
+            padding: 10px 15px;
+            color: rgba(255,255,255,0.8);
+            border-radius: 10px;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 500;
+        }
+        
+        .sidebar-nav .nav-link:hover {
+            background: rgba(76, 175, 80, 0.2);
+            color: white;
+            transform: translateX(5px);
+        }
+        
+        .sidebar-nav .nav-link.active {
+            background: linear-gradient(135deg, #4CAF50, #2e7d32);
+            color: white;
+            box-shadow: 0 4px 10px rgba(76,175,80,0.3);
+        }
+        
+        .sidebar-nav .nav-link i {
+            width: 24px;
+            text-align: center;
+            font-size: 1.1rem;
+        }
+        
+        /* Dropdown in sidebar */
+        .sidebar-nav .dropdown-menu {
+            background: rgba(255,255,255,0.1);
+            border: none;
+            border-radius: 10px;
+            margin-top: 5px;
+            padding: 5px 0;
+        }
+        
+        .sidebar-nav .dropdown-item {
+            color: rgba(255,255,255,0.8);
+            padding: 8px 15px 8px 45px;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+        
+        .sidebar-nav .dropdown-item:hover {
+            background: rgba(76, 175, 80, 0.3);
             color: white;
         }
-        .bg-total { background: linear-gradient(45deg, #007bff, #00c6ff); }
-        .bg-fraud { background: linear-gradient(45deg, #dc3545, #ff6a88); }
-        .bg-rate { background: linear-gradient(45deg, #28a745, #98ec9e); }
-        .bg-avg { background: linear-gradient(45deg, #ffc107, #ffe083); color: black; }
-        .table-risk-high { background-color: #ffdddd; }
-        .table-risk-low { background-color: #ddffdd; }
-        .table-risk-medium { background-color: #ffffcc; }
+        
+        /* Main Content Area */
+        .main-content {
+            margin-left: 280px;
+            width: calc(100% - 280px);
+            min-height: 100vh;
+            transition: all 0.3s;
+        }
+        
+        /* Top Navbar (minimal) */
+        .top-navbar {
+            background: white;
+            padding: 12px 25px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 999;
+        }
+        
+        .top-navbar .welcome-text {
+            font-weight: 500;
+            color: #0a2540;
+        }
+        
+        .top-navbar .welcome-text i {
+            color: #4CAF50;
+            margin-right: 8px;
+        }
+        
+        .btn-logout {
+            background: linear-gradient(135deg, #dc3545, #c82333);
+            border: none;
+            border-radius: 25px;
+            padding: 6px 18px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-logout:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(220,53,69,0.3);
+        }
+        
+        /* Mobile Toggle Button */
+        .mobile-toggle {
+            display: none;
+            background: #0a2540;
+            border: none;
+            color: white;
+            font-size: 1.5rem;
+            padding: 8px 15px;
+            border-radius: 10px;
+            cursor: pointer;
+        }
+        
+        .mobile-toggle:hover {
+            background: #1a4a6f;
+        }
+        
+        /* Overlay for mobile */
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            z-index: 999;
+        }
+        
+        /* Content Container */
+        .content-container {
+            padding: 25px;
+        }
+        
+        /* Footer */
+        .footer {
+            background: white;
+            padding: 20px 25px;
+            margin-top: 30px;
+            border-top: 1px solid #e0e0e0;
+            font-size: 0.85rem;
+            color: #666;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                margin-left: -280px;
+                position: fixed;
+                z-index: 1001;
+            }
+            
+            .sidebar.active {
+                margin-left: 0;
+            }
+            
+            .main-content {
+                margin-left: 0;
+                width: 100%;
+            }
+            
+            .mobile-toggle {
+                display: block;
+            }
+            
+            .top-navbar {
+                padding: 10px 15px;
+            }
+            
+            .content-container {
+                padding: 15px;
+            }
+            
+            .sidebar-header h3 {
+                font-size: 1.1rem;
+            }
+        }
+        
+        /* Cards and other elements remain the same */
+        .card {
+            border: none;
+            border-radius: 20px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.05);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            overflow: hidden;
+        }
+        
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+        }
+        
+        .card-header {
+            background: linear-gradient(135deg, #0a2540 0%, #1a4a6f 100%);
+            color: white;
+            font-weight: 600;
+            padding: 15px 20px;
+            border: none;
+        }
+        
+        .kpi-card {
+            border-radius: 20px;
+            padding: 25px 20px;
+            color: white;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 100%;
+            height: 100%;
+            background: rgba(255,255,255,0.1);
+            transform: rotate(45deg);
+            transition: all 0.5s ease;
+        }
+        
+        .kpi-card:hover::before {
+            top: -30%;
+            right: -30%;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .kpi-card h5 {
+            font-size: 0.85rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+        
+        .kpi-card h2 {
+            font-size: 2.2rem;
+            font-weight: 800;
+            margin-bottom: 0;
+        }
+        
+        .kpi-card i {
+            position: absolute;
+            bottom: 15px;
+            right: 20px;
+            font-size: 2.5rem;
+            opacity: 0.3;
+        }
+        
+        .bg-total { background: linear-gradient(135deg, #1a4a6f, #2a6f9e); }
+        .bg-fraud { background: linear-gradient(135deg, #dc3545, #e4606d); }
+        .bg-rate { background: linear-gradient(135deg, #28a745, #34ce57); }
+        .bg-avg { background: linear-gradient(135deg, #ffc107, #ffcd39); color: #0a2540; }
+        
+        .table {
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .table thead th {
+            background: linear-gradient(135deg, #0a2540, #1a4a6f);
+            color: white;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+        
+        .badge-risk-high { background: linear-gradient(135deg, #dc3545, #e4606d); padding: 6px 14px; border-radius: 20px; font-weight: 600; }
+        .badge-risk-medium { background: linear-gradient(135deg, #ffc107, #ffcd39); color: #0a2540; padding: 6px 14px; border-radius: 20px; font-weight: 600; }
+        .badge-risk-low { background: linear-gradient(135deg, #28a745, #34ce57); padding: 6px 14px; border-radius: 20px; font-weight: 600; }
+        
+        .btn-primary {
+            background: linear-gradient(135deg, #0a2540, #1a4a6f);
+            border: none;
+            border-radius: 12px;
+            padding: 10px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 20px rgba(10,37,64,0.4);
+        }
+        
+        .alert {
+            border-radius: 16px;
+            border: none;
+        }
     </style>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="container-fluid">
-        <a class="navbar-brand" href="{% url 'home' %}">SecureBank</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav me-auto">
-                <li class="nav-item">
-                    <a class="nav-link" href="{% url 'home' %}">Home</a>
-                </li>
-                {% if user.is_authenticated %}
-                    {% if user.is_staff or user.groups.all.0.name == 'Staff' %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'dashboard' %}">Fraud Dashboard</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'alert_list' %}">Alerts</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'network_security' %}">Network Security</a>
-                        </li>
-                    {% endif %}
-                    {% if user.customer %}
-                        <li class="nav-item">
-                            <a class="nav-link" href="{% url 'customer_dashboard' %}">My Accounts</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-                                Banking
-                            </a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="{% url 'deposit' %}">Deposit</a></li>
-                                <li><a class="dropdown-item" href="{% url 'withdraw' %}">Withdraw</a></li>
-                                <li><a class="dropdown-item" href="{% url 'transfer' %}">Transfer</a></li>
-                            </ul>
-                        </li>
-                    {% endif %}
+
+<div class="wrapper">
+    <!-- Sidebar -->
+    <div class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <h3><i class="fas fa-shield-alt"></i> SecureBank</h3>
+            <p>AI Fraud Detection System</p>
+        </div>
+        
+        <div class="sidebar-nav">
+            <!-- Main Navigation -->
+            <div class="nav-section">
+                <div class="nav-section-title">MAIN</div>
+                <div class="nav-item">
+                    <a class="nav-link" href="{% url 'home' %}">
+                        <i class="fas fa-home"></i> Dashboard
+                    </a>
+                </div>
+            </div>
+            
+            {% if user.is_authenticated %}
+                <!-- Staff Section -->
+                {% if user.is_staff or user.groups.all.0.name == 'Staff' %}
+                <div class="nav-section">
+                    <div class="nav-section-title">FRAUD DETECTION</div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'dashboard' %}">
+                            <i class="fas fa-chart-line"></i> Fraud Dashboard
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'alert_list' %}">
+                            <i class="fas fa-bell"></i> Alerts
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'network_security' %}">
+                            <i class="fas fa-network-wired"></i> Network Security
+                        </a>
+                    </div>
                     <li class="nav-item">
-                        <a class="nav-link" href="{% url 'transaction-create' %}">New Transaction (Demo)</a>
-                    </li>
+    <a class="nav-link" href="{% url 'pending_kyc' %}">
+        <i class="fas fa-id-card me-1"></i> KYC Approvals
+    </a>
+</li>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'compliance_dashboard' %}">
+                            <i class="fas fa-gavel"></i> Compliance
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'review_queue' %}">
+                            <i class="fas fa-clipboard-list"></i> Review Queue
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Analytics Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">ANALYTICS</div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'feature_analytics' %}">
+                            <i class="fas fa-chart-bar"></i> Feature Analytics
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'smote_results' %}">
+                            <i class="fas fa-balance-scale"></i> SMOTE Results
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'model_performance' %}">
+                            <i class="fas fa-brain"></i> Model Performance
+                        </a>
+                    </div>
+                </div>
+                
+                <!-- Data Management Section -->
+                <div class="nav-section">
+                    <div class="nav-section-title">DATA MANAGEMENT</div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'upload_dataset' %}">
+                            <i class="fas fa-upload"></i> Upload Dataset
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'export_page' %}">
+                            <i class="fas fa-file-export"></i> Export Data
+                        </a>
+                    </div>
+                </div>
+
+                <div class="nav-item">
+    <a class="nav-link" href="{% url 'feature_importance' %}">
+        <i class="fas fa-chart-bar"></i> Feature Importance
+    </a>
+</div>
+
+<div class="nav-section">
+    <div class="nav-section-title">LIVE DEMO</div>
+    <div class="nav-item">
+        <a class="nav-link" href="{% url 'live_demo' %}">
+            <i class="fas fa-play-circle"></i> Live Demo Mode
+        </a>
+    </div>
+</div>
+
+<div class="nav-item">
+    <a class="nav-link" href="{% url 'alert_simulation' %}">
+        <i class="fas fa-bell"></i> Alert Simulation
+    </a>
+</div>
                 {% endif %}
-            </ul>
-            <ul class="navbar-nav">
-                {% if user.is_authenticated %}
-                    <li class="nav-item">
-                        <span class="navbar-text me-3">Welcome, {{ user.username }}</span>
-                    </li>
-                    <li class="nav-item">
-                        <form method="post" action="{% url 'logout' %}" class="d-inline">
-                            {% csrf_token %}
-                            <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                        </form>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'login' %}">Login</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'register' %}">Register</a>
-                    </li>
+                
+                <!-- Customer Section -->
+                {% if user.customer %}
+                <div class="nav-section">
+                    <div class="nav-section-title">BANKING</div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'customer_dashboard' %}">
+                            <i class="fas fa-chart-pie"></i> My Accounts
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'deposit' %}">
+                            <i class="fas fa-arrow-down"></i> Deposit
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'withdraw' %}">
+                            <i class="fas fa-arrow-up"></i> Withdraw
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'transfer' %}">
+                            <i class="fas fa-exchange-alt"></i> Transfer
+                        </a>
+                    </div>
+                    <div class="nav-item">
+                        <a class="nav-link" href="{% url 'transaction-create' %}">
+                            <i class="fas fa-plus-circle"></i> New Transaction
+                        </a>
+                    </div>
+                </div>
                 {% endif %}
-            </ul>
+            {% endif %}
         </div>
     </div>
-</nav>
-    <li class="nav-item dropdown">
-    <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown">
-        Banking
-    </a>
-    <ul class="dropdown-menu">
-        <li><a class="dropdown-item" href="{% url 'deposit' %}">Deposit</a></li>
-        <li><a class="dropdown-item" href="{% url 'withdraw' %}">Withdraw</a></li>
-        <li><a class="dropdown-item" href="{% url 'transfer' %}">Transfer</a></li>
-    </ul>
-</li>
-<li class="nav-item">
-    <a class="nav-link" href="{% url 'customer_dashboard' %}">My Accounts</a>
-</li>
-   <main>
-    {% if messages %}
-        <div class="container mt-3">
-            {% for message in messages %}
-                <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
-                    {{ message }}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            {% endfor %}
+    
+    <!-- Sidebar Overlay for Mobile -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Top Navbar -->
+        <div class="top-navbar">
+            <button class="mobile-toggle" id="mobileToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div>
+                {% if user.is_authenticated %}
+                    <span class="welcome-text">
+                        <i class="fas fa-user-circle"></i> Welcome, {{ user.username }}
+                    </span>
+                {% else %}
+                    <span class="welcome-text">
+                        <i class="fas fa-globe"></i> Welcome to SecureBank
+                    </span>
+                {% endif %}
+            </div>
+            <div>
+                {% if user.is_authenticated %}
+                    <form method="post" action="{% url 'logout' %}" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-logout">
+                            <i class="fas fa-sign-out-alt me-1"></i> Logout
+                        </button>
+                    </form>
+                {% else %}
+                    <a href="{% url 'login' %}" class="btn btn-primary btn-sm me-2">
+                        <i class="fas fa-sign-in-alt me-1"></i> Login
+                    </a>
+                    <a href="{% url 'register' %}" class="btn btn-outline-secondary btn-sm">
+                        <i class="fas fa-user-plus me-1"></i> Register
+                    </a>
+                {% endif %}
+            </div>
         </div>
-    {% endif %}
-    {% block content %}{% endblock %}
-</main>
+        
+        <!-- Content Container -->
+        <div class="content-container">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show shadow-sm rounded-3" role="alert">
+                        <i class="fas fa-{% if message.tags == 'success' %}check-circle{% elif message.tags == 'error' %}exclamation-circle{% else %}info-circle{% endif %} me-2"></i>
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+            
+            {% block content %}{% endblock %}
+        </div>
+        
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2026 SecureBank. All rights reserved. | Powered by AI & Machine Learning</p>
+            </div>
+        </footer>
+    </div>
+</div>
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    {% block extra_js %}{% endblock %}
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Mobile Sidebar Toggle -->
+<script>
+    const mobileToggle = document.getElementById('mobileToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebarOverlay');
+    
+    if (mobileToggle) {
+        mobileToggle.addEventListener('click', function() {
+            sidebar.classList.toggle('active');
+            overlay.style.display = sidebar.classList.contains('active') ? 'block' : 'none';
+        });
+    }
+    
+    if (overlay) {
+        overlay.addEventListener('click', function() {
+            sidebar.classList.remove('active');
+            overlay.style.display = 'none';
+        });
+    }
+    
+    // Active link highlighting
+    document.querySelectorAll('.sidebar-nav .nav-link').forEach(link => {
+        if (link.href === window.location.href) {
+            link.classList.add('active');
+        }
+    });
+</script>
+
+{% block extra_js %}{% endblock %}
 </body>
 </html>

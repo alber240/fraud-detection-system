@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>SMOTE Training Results</h2>
+    <p>Class Imbalance Handling with Synthetic Minority Over-sampling Technique</p>
+    
+    {% if has_results %}
+        <div class="alert alert-success">
+            <strong>✅ Training Complete!</strong> SMOTE successfully balanced the dataset.
+        </div>
+        
+        <div class="row">
+            {% for name, metrics in results.items %}
+            <div class="col-md-6 mb-4">
+                <div class="card {% if name == best_model %}border-success{% endif %}">
+                    <div class="card-header">
+                        <h4>{{ name|title }}</h4>
+                        {% if name == best_model %}
+                            <span class="badge bg-success">BEST MODEL</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <th>Metric</th>
+                                <th>Value</th>
+                            </tr>
+                            <tr>
+                                <td>Accuracy</td>
+                                <td><strong>{{ metrics.accuracy|floatformat:4 }}%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>Precision</td>
+                                <td>{{ metrics.precision|floatformat:4 }}%</td>
+                            </tr>
+                            <tr>
+                                <td>Recall</td>
+                                <td>{{ metrics.recall|floatformat:4 }}%</td>
+                            </tr>
+                            <tr>
+                                <td>F1-Score</td>
+                                <td><strong>{{ metrics.f1_score|floatformat:4 }}%</strong></td>
+                            </tr>
+                            <tr>
+                                <td>ROC-AUC</td>
+                                <td>{{ metrics.roc_auc|floatformat:4 }}%</td>
+                            </tr>
+                        </table>
+                        
+                        <h6>Confusion Matrix</h6>
+                        <table class="table table-bordered table-sm">
+                            <tr>
+                                <td></td>
+                                <td>Predicted Legit</td>
+                                <td>Predicted Fraud</td>
+                            </tr>
+                            <tr>
+                                <td>Actual Legit</td>
+                                <td>{{ metrics.confusion_matrix.0.0 }}</td>
+                                <td>{{ metrics.confusion_matrix.0.1 }}</td>
+                            </tr>
+                            <tr>
+                                <td>Actual Fraud</td>
+                                <td>{{ metrics.confusion_matrix.1.0 }}</td>
+                                <td>{{ metrics.confusion_matrix.1.1 }}</td>
+                            </tr>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="alert alert-warning">
+            <strong>⚠️ No training results found.</strong>
+            <a href="{% url 'upload_dataset' %}" class="alert-link">Upload a dataset</a> and run training.
+        </div>
+    {% endif %}
+    
+    <div class="mt-4">
+        <a href="{% url 'upload_dataset' %}" class="btn btn-primary">
+            <i class="fas fa-upload me-1"></i>Upload New Dataset
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-chart-line me-1"></i>View Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

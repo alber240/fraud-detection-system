@@ -1,0 +1,26 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="card">
+        <div class="card-header bg-success text-white">
+            <h4><i class="fas fa-check me-2"></i>Approve KYC</h4>
+        </div>
+        <div class="card-body">
+            <p><strong>Username:</strong> {{ customer.user.username }}</p>
+            <p><strong>Email:</strong> {{ customer.user.email }}</p>
+            <p><strong>Phone:</strong> {{ customer.phone }}</p>
+            <p><strong>Address:</strong> {{ customer.address }}</p>
+            <p><strong>ID Number:</strong> {{ customer.id_number }}</p>
+            
+            <form method="post">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-check me-1"></i> Confirm Approve
+                </button>
+                <a href="{% url 'pending_kyc' %}" class="btn btn-secondary">Cancel</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

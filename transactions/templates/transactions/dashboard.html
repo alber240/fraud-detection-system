@@ -1,248 +1,370 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Fraud Detection Dashboard</title>
-    <!-- Bootstrap 5 CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Chart.js -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
-    <style>
-        .kpi-card {
-            border-radius: 10px;
-            padding: 20px;
-            margin: 10px 0;
-            color: white;
-        }
-        .bg-total { background: linear-gradient(45deg, #007bff, #00c6ff); }
-        .bg-fraud { background: linear-gradient(45deg, #dc3545, #ff6a88); }
-        .bg-rate { background: linear-gradient(45deg, #28a745, #98ec9e); }
-        .bg-avg { background: linear-gradient(45deg, #ffc107, #ffe083); color: black; }
-        .table-risk-high { background-color: #ffdddd; }
-        .table-risk-low { background-color: #ddffdd; }
-        .table-risk-medium { background-color: #ffffcc; }
-    </style>
-</head>
-<body>
-    
-    <!-- Navigation -->
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{% url 'dashboard' %}">Fraud Detection System</a>
-            <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'dashboard' %}">Dashboard</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'transaction-create' %}">New Transaction</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'alert_list' %}">Alerts</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="{% url 'network_security' %}">Network Security</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="d-flex">
-                {% if user.is_authenticated %}
-                    <span class="navbar-text me-3">Welcome, {{ user.username }}</span>
-                    <form method="post" action="{% url 'logout' %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-outline-light btn-sm">Logout</button>
-                    </form>
-                {% endif %}
+{% extends 'base.html' %}
+
+{% block title %}SecureBank | Fraud Detection Dashboard{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <!-- Page Header -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="fw-bold text-dark">
+                <i class="fas fa-chart-line text-primary me-2"></i>Fraud Detection Dashboard
+            </h2>
+            <p class="text-muted">Real-time transaction monitoring and fraud analysis</p>
+        </div>
+        <a href="{% url 'transaction-create' %}" class="btn btn-primary rounded-pill">
+            <i class="fas fa-plus-circle me-2"></i>New Transaction
+        </a>
+    </div>
+
+    <!-- KPI Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-3">
+            <div class="kpi-card bg-total">
+                <i class="fas fa-chart-simple"></i>
+                <h5>Transactions Total</h5>
+                <h2>{{ total_count }}</h2>
             </div>
         </div>
-    </nav>
-
-    <!-- Main Container -->
-    <div class="container mt-4">
-        <!-- Action Buttons -->
-        <div class="mb-3">
-            <a href="{% url 'transaction-create' %}" class="btn btn-primary">+ New Transaction</a>
+        <div class="col-md-3">
+            <div class="kpi-card bg-fraud">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h5>Fraud Detected</h5>
+                <h2>{{ fraud_count }}</h2>
+            </div>
         </div>
+        <div class="col-md-3">
+            <div class="kpi-card bg-rate">
+                <i class="fas fa-percent"></i>
+                <h5>Fraud Rate</h5>
+                <h2>{{ fraud_rate }}%</h2>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="kpi-card bg-avg">
+                <i class="fas fa-dollar-sign"></i>
+                <h5>Avg Amount</h5>
+                <h2>${{ avg_amount }}</h2>
+            </div>
+        </div>
+    </div>
 
-        <!-- KPI Cards -->
-        <div class="row">
-            <div class="col-md-3">
-                <div class="kpi-card bg-total">
-                    <h5>Total Transactions</h5>
-                    <h2>{{ total_count }}</h2>
+    <!-- Charts Row -->
+    <div class="row g-4 mb-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-calendar-day me-2"></i> Daily Transactions (Last 7 Days)
                 </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card bg-fraud">
-                    <h5>Fraud Detected</h5>
-                    <h2>{{ fraud_count }}</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card bg-rate">
-                    <h5>Fraud Rate</h5>
-                    <h2>{{ fraud_rate }}%</h2>
-                </div>
-            </div>
-            <div class="col-md-3">
-                <div class="kpi-card bg-avg">
-                    <h5>Avg Amount</h5>
-                    <h2>${{ avg_amount }}</h2>
+                <div class="card-body">
+                    <canvas id="dailyChart"></canvas>
                 </div>
             </div>
         </div>
-
-        <!-- Charts Row -->
-        <div class="row mt-4">
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        Daily Transactions (Last 7 Days)
-                    </div>
-                    <div class="card-body">
-                        <canvas id="dailyChart"></canvas>
-                    </div>
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">
+                    <i class="fas fa-clock me-2"></i> Hourly Transactions (Last 24 Hours)
                 </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        Hourly Transactions (Last 24 Hours)
-                    </div>
-                    <div class="card-body">
-                        <canvas id="hourlyChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Recent Transactions Table -->
-        <div class="row mt-4">
-            <div class="col-12">
-                <div class="card">
-                    <div class="card-header">
-                        Recent Transactions
-                    </div>
-                    <div class="card-body">
-                        <table class="table table-striped table-hover">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Amount</th>
-                                    <th>Timestamp</th>
-                                    <th>Prediction</th>
-                                    <th>Risk Score</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for t in transactions %}
-                                <tr class="
-                                    {% if t.prediction %}table-risk-high{% else %}table-risk-low{% endif %}
-                                    {% if not t.prediction and t.probability and t.probability > 0.5 %}table-risk-medium{% endif %}
-                                ">
-                                    <td>{{ t.transaction_id }}</td>
-                                    <td>${{ t.amount }}</td>
-                                    <td>{{ t.timestamp }}</td>
-                                    <td>
-                                        {% if t.prediction %}
-                                            <span class="badge bg-danger">Fraud</span>
-                                        {% else %}
-                                            <span class="badge bg-success">Legit</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if t.probability %}
-                                            {{ t.probability|floatformat:2 }}
-                                        {% else %}
-                                            -
-                                        {% endif %}
-                                    </td>
-                                </tr>
-                                {% empty %}
-                                <tr>
-                                    <td colspan="5">No transactions found.</td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
+                <div class="card-body">
+                    <canvas id="hourlyChart"></canvas>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Chart Initialization Script -->
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            // Initialize Daily Chart
-            const dailyCtx = document.getElementById('dailyChart').getContext('2d');
-            new Chart(dailyCtx, {
-                type: 'bar',
-                data: {
-                    labels: {{ daily_labels|safe }},
-                    datasets: [
-                        {
-                            label: 'Total Transactions',
-                            data: {{ daily_totals|safe }},
-                            backgroundColor: 'rgba(0, 123, 255, 0.7)',
-                            borderColor: 'rgba(0, 123, 255, 1)',
-                            borderWidth: 1
-                        },
-                        {
-                            label: 'Fraud Transactions',
-                            data: {{ daily_frauds|safe }},
-                            backgroundColor: 'rgba(220, 53, 69, 0.7)',
-                            borderColor: 'rgba(220, 53, 69, 1)',
-                            borderWidth: 1
-                        }
-                    ]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
-                    }
-                }
-            });
+    <!-- Recent Transactions Table -->
+    <div class="card">
+        <div class="card-header">
+            <i class="fas fa-table-list me-2"></i> Recent Transactions
+        </div>
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover mb-0" id="transactionsTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Amount</th>
+                            <th>Timestamp</th>
+                            <th>Prediction</th>
+                            <th>Risk Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsTableBody">
+                        {% for t in transactions %}
+                        <tr class="
+                            {% if t.prediction %}table-danger{% elif t.probability and t.probability > 0.5 %}table-warning{% else %}table-success{% endif %}
+                        ">
+                            <td>{{ t.transaction_id }}</td>
+                            <td>${{ t.amount }}</td>
+                            <td>{{ t.timestamp|date:"M d, Y H:i" }}</td>
+                            <td>
+                                {% if t.prediction %}
+                                    <span class="badge-risk-high"><i class="fas fa-shield-alt me-1"></i>Fraud</span>
+                                {% else %}
+                                    <span class="badge-risk-low"><i class="fas fa-check-circle me-1"></i>Legit</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <span class="fw-bold">{{ t.probability|floatformat:1 }}%</span>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr id="noTransactionsRow">
+                            <td colspan="5" class="text-center py-4">
+                                <i class="fas fa-inbox fa-2x text-muted mb-2 d-block"></i>
+                                No transactions found.
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-            // Initialize Hourly Chart
-            const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
-            new Chart(hourlyCtx, {
-                type: 'line',
-                data: {
-                    labels: {{ hourly_labels|safe }},
-                    datasets: [{
-                        label: 'Transactions',
-                        data: {{ hourly_counts|safe }},
-                        backgroundColor: 'rgba(255, 193, 7, 0.2)',
-                        borderColor: 'rgba(255, 193, 7, 1)',
-                        tension: 0.3,
-                        fill: true
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    scales: {
-                        y: { beginAtZero: true }
+<script>
+    // Chart initialization
+    document.addEventListener('DOMContentLoaded', function() {
+        // Daily Chart
+        const dailyCtx = document.getElementById('dailyChart').getContext('2d');
+        new Chart(dailyCtx, {
+            type: 'bar',
+            data: {
+                labels: {{ daily_labels|safe }},
+                datasets: [
+                    {
+                        label: 'Total Transactions',
+                        data: {{ daily_totals|safe }},
+                        backgroundColor: 'rgba(26, 74, 111, 0.7)',
+                        borderColor: '#1a4a6f',
+                        borderWidth: 1,
+                        borderRadius: 8
+                    },
+                    {
+                        label: 'Fraud Transactions',
+                        data: {{ daily_frauds|safe }},
+                        backgroundColor: 'rgba(220, 53, 69, 0.7)',
+                        borderColor: '#dc3545',
+                        borderWidth: 1,
+                        borderRadius: 8
                     }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
                 }
-            });
+            }
         });
 
-        // WebSocket for real-time updates (optional)
-        // Uncomment if you have Django Channels set up
-        /*
-        const ws = new WebSocket('ws://' + window.location.host + '/ws/transactions/');
-        ws.onmessage = function(e) {
-            const data = JSON.parse(e.data);
-            // Reload page to reflect new transaction (simplest approach)
-            location.reload();
-        };
-        */
-    </script>
+        // Hourly Chart
+        const hourlyCtx = document.getElementById('hourlyChart').getContext('2d');
+        new Chart(hourlyCtx, {
+            type: 'line',
+            data: {
+                labels: {{ hourly_labels|safe }},
+                datasets: [{
+                    label: 'Transactions',
+                    data: {{ hourly_counts|safe }},
+                    backgroundColor: 'rgba(76, 175, 80, 0.1)',
+                    borderColor: '#4CAF50',
+                    borderWidth: 2,
+                    tension: 0.3,
+                    fill: true,
+                    pointBackgroundColor: '#4CAF50',
+                    pointBorderColor: 'white',
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: {
+                    legend: { position: 'top' }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' } },
+                    x: { grid: { display: false } }
+                }
+            }
+        });
+    });
 
-    <!-- Bootstrap JS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</body>
-</html>
+    // ============================================================
+    // WEBSOCKET REAL-TIME CONNECTION
+    // ============================================================
+    
+    let ws;
+    let reconnectAttempts = 0;
+    const maxReconnectAttempts = 10;
+
+    function connectWebSocket() {
+        try {
+            const protocol = window.location.protocol === 'https:' ? 'wss://' : 'ws://';
+            const wsUrl = protocol + window.location.host + '/ws/transactions/';
+            console.log('🟡 Connecting to WebSocket:', wsUrl);
+            
+            ws = new WebSocket(wsUrl);
+            
+            ws.onopen = function() {
+                console.log('✅ WebSocket connected successfully');
+                reconnectAttempts = 0;
+                
+                // Send ping every 30 seconds to keep connection alive
+                setInterval(function() {
+                    if (ws && ws.readyState === WebSocket.OPEN) {
+                        ws.send(JSON.stringify({type: 'ping'}));
+                        console.log('📡 Ping sent');
+                    }
+                }, 30000);
+            };
+            
+            ws.onmessage = function(event) {
+                console.log('📨 WebSocket message received:', event.data);
+                try {
+                    const data = JSON.parse(event.data);
+                    if (data.type === 'new_transaction') {
+                        console.log('🆕 New transaction detected:', data.transaction);
+                        addTransactionToTable(data.transaction);
+                        updateKPIs(data.transaction);
+                        showNotification(data.transaction);
+                    }
+                } catch(e) {
+                    console.error('Error parsing message:', e);
+                }
+            };
+            
+            ws.onerror = function(error) {
+                console.error('❌ WebSocket error:', error);
+            };
+            
+            ws.onclose = function(event) {
+                console.log('🔌 WebSocket disconnected. Code:', event.code, 'Reason:', event.reason);
+                if (reconnectAttempts < maxReconnectAttempts) {
+                    reconnectAttempts++;
+                    console.log(`🔄 Reconnecting in 3 seconds... (Attempt ${reconnectAttempts}/${maxReconnectAttempts})`);
+                    setTimeout(connectWebSocket, 3000);
+                } else {
+                    console.log('❌ Max reconnection attempts reached. Please refresh the page.');
+                }
+            };
+        } catch(e) {
+            console.error('Failed to create WebSocket connection:', e);
+        }
+    }
+    
+    function addTransactionToTable(transaction) {
+        const tableBody = document.getElementById('transactionsTableBody');
+        const noTransactionsRow = document.getElementById('noTransactionsRow');
+        
+        // Remove "no transactions" row if it exists
+        if (noTransactionsRow) {
+            noTransactionsRow.remove();
+        }
+        
+        // Determine row class based on risk
+        let rowClass = 'table-success';
+        if (transaction.prediction) {
+            rowClass = 'table-danger';
+        } else if (transaction.probability > 0.5) {
+            rowClass = 'table-warning';
+        }
+        
+        // Create new row
+        const newRow = document.createElement('tr');
+        newRow.className = rowClass;
+        newRow.innerHTML = `
+            <td>${transaction.id || transaction.transaction_id || 'N/A'}</td>
+            <td>$${parseFloat(transaction.amount).toFixed(2)}</td>
+            <td>${new Date(transaction.timestamp).toLocaleString()}</td>
+            <td>
+                ${transaction.prediction ? 
+                    '<span class="badge-risk-high"><i class="fas fa-shield-alt me-1"></i>Fraud</span>' : 
+                    '<span class="badge-risk-low"><i class="fas fa-check-circle me-1"></i>Legit</span>'}
+            </td>
+            <td><span class="fw-bold">${(transaction.probability * 100).toFixed(1)}%</span></td>
+        `;
+        
+        // Insert at top of table
+        if (tableBody.firstChild) {
+            tableBody.insertBefore(newRow, tableBody.firstChild);
+        } else {
+            tableBody.appendChild(newRow);
+        }
+        
+        // Keep only last 100 rows
+        while (tableBody.children.length > 100) {
+            tableBody.removeChild(tableBody.lastChild);
+        }
+        
+        console.log('✅ Transaction added to table');
+    }
+    
+    function updateKPIs(transaction) {
+        // Update total count
+        const totalCard = document.querySelector('.bg-total h2');
+        if (totalCard) {
+            let currentTotal = parseInt(totalCard.innerText) || 0;
+            totalCard.innerText = currentTotal + 1;
+        }
+        
+        // Update fraud count if flagged
+        if (transaction.prediction) {
+            const fraudCard = document.querySelector('.bg-fraud h2');
+            if (fraudCard) {
+                let currentFraud = parseInt(fraudCard.innerText) || 0;
+                fraudCard.innerText = currentFraud + 1;
+            }
+            
+            // Update fraud rate
+            const rateCard = document.querySelector('.bg-rate h2');
+            const totalCard = document.querySelector('.bg-total h2');
+            if (rateCard && totalCard) {
+                let total = parseInt(totalCard.innerText);
+                let fraud = parseInt(document.querySelector('.bg-fraud h2').innerText);
+                let newRate = (fraud / total * 100).toFixed(2);
+                rateCard.innerText = newRate + '%';
+            }
+        }
+    }
+    
+    function showNotification(transaction) {
+        // Create notification element
+        const notification = document.createElement('div');
+        notification.className = `alert alert-${transaction.prediction ? 'danger' : 'info'} alert-dismissible fade show position-fixed top-0 end-0 m-3`;
+        notification.style.zIndex = '9999';
+        notification.style.minWidth = '300px';
+        notification.style.boxShadow = '0 4px 15px rgba(0,0,0,0.2)';
+        notification.innerHTML = `
+            <strong><i class="fas fa-${transaction.prediction ? 'exclamation-triangle' : 'info-circle'} me-2"></i>
+            ${transaction.prediction ? 'FRAUD ALERT!' : 'New Transaction'}</strong><br>
+            <small>Amount: $${parseFloat(transaction.amount).toFixed(2)}<br>
+            Risk: ${(transaction.probability * 100).toFixed(1)}%</small>
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        document.body.appendChild(notification);
+        
+        // Auto-remove after 5 seconds
+        setTimeout(() => {
+            if (notification.parentNode) {
+                notification.remove();
+            }
+        }, 5000);
+    }
+    
+    // Start WebSocket connection when page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        console.log('🟢 Page loaded, connecting WebSocket...');
+        connectWebSocket();
+    });
+</script>
+{% endblock %}

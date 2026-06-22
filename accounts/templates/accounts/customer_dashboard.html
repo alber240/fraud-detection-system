@@ -3,8 +3,27 @@
 {% block content %}
 <div class="container mt-4">
     <h2>My Accounts</h2>
+    
     {% if customer %}
-        <p>KYC Status: {{ customer.get_kyc_status_display }}</p>
+        <!-- KYC Status Messages -->
+        {% if customer.kyc_status == 'pending' %}
+            <div class="alert alert-warning">
+                <i class="fas fa-clock me-2"></i>
+                Your KYC is pending approval. You can view your account but transactions are limited.
+            </div>
+        {% elif customer.kyc_status == 'verified' %}
+            <div class="alert alert-success">
+                <i class="fas fa-check-circle me-2"></i>
+                Your KYC is verified. You can perform all banking operations.
+            </div>
+        {% elif customer.kyc_status == 'rejected' %}
+            <div class="alert alert-danger">
+                <i class="fas fa-times-circle me-2"></i>
+                Your KYC was rejected. Please contact support.
+            </div>
+        {% endif %}
+
+        <p><strong>KYC Status:</strong> {{ customer.get_kyc_status_display }}</p>
 
         {% if customer.profile_image %}
             <div class="mb-3">
@@ -14,6 +33,7 @@
             <p class="text-muted">No profile image uploaded.</p>
         {% endif %}
 
+        <!-- Accounts -->
         <div class="row">
             {% for account in accounts %}
                 <div class="col-md-4">
@@ -30,6 +50,7 @@
             {% endfor %}
         </div>
 
+        <!-- Recent Transactions -->
         <h3 class="mt-4">Recent Transactions</h3>
         <table class="table table-striped">
             <thead>

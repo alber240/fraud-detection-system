@@ -1,0 +1,90 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-chart-bar me-2"></i>Feature Importance Analysis</h2>
+    <p class="text-muted">SHAP (SHapley Additive exPlanations) - Understanding what drives fraud predictions</p>
+    
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>What is SHAP?</h5>
+                </div>
+                <div class="card-body">
+                    <p>SHAP (SHapley Additive exPlanations) explains how each feature contributes to a model's prediction. 
+                    The visualizations below show which transaction characteristics most influence fraud detection.</p>
+                    <ul>
+                        <li><strong>Bar Chart</strong> - Shows the average impact of each feature on the prediction</li>
+                        <li><strong>Summary Plot</strong> - Shows how each feature affects predictions (high/low values)</li>
+                        <li>Red/Blue colors indicate whether higher feature values increase or decrease fraud risk</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if has_images %}
+        <div class="row">
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-bar me-2"></i>Feature Importance Bar Chart</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="{{ shap_bar_url }}" alt="SHAP Feature Importance" class="img-fluid rounded shadow-sm">
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-12 mb-4">
+                <div class="card">
+                    <div class="card-header">
+                        <h5><i class="fas fa-chart-scatter me-2"></i>SHAP Summary Plot</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <img src="{{ shap_summary_url }}" alt="SHAP Summary Plot" class="img-fluid rounded shadow-sm">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="alert alert-info">
+            <i class="fas fa-lightbulb me-2"></i>
+            <strong>Interpretation:</strong> Features at the top have the biggest impact on fraud detection. 
+            The color bar shows whether higher (red) or lower (blue) feature values increase fraud risk.
+        </div>
+        
+        <div class="mt-3">
+            <a href="{% url 'model_performance' %}" class="btn btn-primary">
+                <i class="fas fa-chart-line me-1"></i>View Model Performance
+            </a>
+            <button type="button" class="btn btn-warning" onclick="window.location.reload()">
+                <i class="fas fa-sync-alt me-1"></i>Refresh
+            </button>
+        </div>
+        
+    {% else %}
+        <div class="alert alert-warning text-center">
+            <i class="fas fa-chart-line fa-3x mb-3 d-block"></i>
+            <h5>No SHAP analysis data available</h5>
+            <p>Generate SHAP visualizations to see feature importance analysis.</p>
+            <form method="post" action="{% url 'generate_shap' %}">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-primary btn-lg">
+                    <i class="fas fa-chart-bar me-2"></i>Generate SHAP Analysis
+                </button>
+            </form>
+            <p class="text-muted mt-3 small">
+                Note: This may take 30-60 seconds as it analyzes the model on sample data.
+            </p>
+        </div>
+    {% endif %}
+    
+    <div class="mt-3">
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i>Back to Dashboard
+        </a>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,363 @@
+{% extends 'base.html' %}
+
+{% block title %}Model Performance Dashboard{% endblock %}
+
+{% block extra_css %}
+<style>
+    .metric-card {
+        text-align: center;
+        padding: 20px;
+        border-radius: 15px;
+        background: white;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        transition: transform 0.3s ease;
+    }
+    .metric-card:hover {
+        transform: translateY(-5px);
+    }
+    .metric-value {
+        font-size: 2.5rem;
+        font-weight: 800;
+    }
+    .metric-label {
+        color: #666;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+    .best-model {
+        border: 3px solid #28a745;
+        background: #f0fff4;
+    }
+    .model-card {
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+    .model-card:hover {
+        transform: scale(1.02);
+        box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+    }
+    .confusion-matrix {
+        font-family: monospace;
+        font-size: 1.2rem;
+    }
+    .confusion-cell {
+        text-align: center;
+        padding: 15px;
+        border-radius: 10px;
+    }
+    .tn { background: #d4edda; color: #155724; }
+    .fp { background: #f8d7da; color: #721c24; }
+    .fn { background: #fff3cd; color: #856404; }
+    .tp { background: #cce5ff; color: #004085; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2><i class="fas fa-chart-line me-2"></i>Model Performance Dashboard</h2>
+    <p class="text-muted">Machine Learning Model Evaluation Metrics with SMOTE Class Balancing</p>
+    
+    {% if has_results %}
+        <!-- Best Model Banner -->
+        <div class="alert alert-success text-center mb-4">
+            <i class="fas fa-trophy me-2"></i>
+            <strong>Best Model: {{ best_model|title }}</strong>
+        </div>
+        
+        <!-- Summary Metrics Cards -->
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-chart-simple fa-2x text-primary"></i>
+                    <div class="metric-value">{{ results|length }}</div>
+                    <div class="metric-label">Models Trained</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-database fa-2x text-success"></i>
+                    <div class="metric-value">284,807</div>
+                    <div class="metric-label">Total Transactions</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-chart-line fa-2x text-warning"></i>
+                    <div class="metric-value">SMOTE</div>
+                    <div class="metric-label">Class Balancing</div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="metric-card">
+                    <i class="fas fa-brain fa-2x text-danger"></i>
+                    <div class="metric-value">5-Fold</div>
+                    <div class="metric-label">Cross-Validation</div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Models Comparison Chart -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-bar me-2"></i>Model Performance Comparison</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="performanceChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <!-- ROC Curves -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5><i class="fas fa-chart-line me-2"></i>ROC Curves</h5>
+            </div>
+            <div class="card-body">
+                <canvas id="rocChart" height="300"></canvas>
+            </div>
+        </div>
+        
+        <!-- Individual Model Cards -->
+        <h4 class="mt-4 mb-3">Model Details</h4>
+        <div class="row">
+            {% for name, metrics in results.items %}
+            <div class="col-md-4 mb-4">
+                <div class="card model-card {% if name == best_model %}best-model{% endif %}">
+                    <div class="card-header text-center">
+                        <h4>{{ name|title }}</h4>
+                        {% if name == best_model %}
+                            <span class="badge bg-success">🏆 BEST PERFORMER</span>
+                        {% endif %}
+                    </div>
+                    <div class="card-body">
+                        <table class="table table-sm">
+                            <tr>
+                                <td><strong>Accuracy</strong></td>
+                                <td class="text-end">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-primary" style="width: {{ metrics.accuracy|floatformat:2 }}%"></div>
+                                    </div>
+                                    <span class="ms-2">{{ metrics.accuracy|floatformat:2 }}%</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Precision</strong></td>
+                                <td class="text-end">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-info" style="width: {{ metrics.precision|floatformat:2 }}%"></div>
+                                    </div>
+                                    <span class="ms-2">{{ metrics.precision|floatformat:2 }}%</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>Recall</strong></td>
+                                <td class="text-end">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-success" style="width: {{ metrics.recall|floatformat:2 }}%"></div>
+                                    </div>
+                                    <span class="ms-2">{{ metrics.recall|floatformat:2 }}%</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>F1-Score</strong></td>
+                                <td class="text-end">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-warning" style="width: {{ metrics.f1_score|floatformat:2 }}%"></div>
+                                    </div>
+                                    <span class="ms-2">{{ metrics.f1_score|floatformat:2 }}%</span>
+                                </td>
+                            </tr>
+                            <tr>
+                                <td><strong>ROC-AUC</strong></td>
+                                <td class="text-end">
+                                    <div class="progress" style="height: 8px;">
+                                        <div class="progress-bar bg-danger" style="width: {{ metrics.roc_auc|floatformat:2 }}%"></div>
+                                    </div>
+                                    <span class="ms-2">{{ metrics.roc_auc|floatformat:2 }}%</span>
+                                </td>
+                            </tr>
+                        </table>
+                        
+                        <!-- Confusion Matrix -->
+                        <h6 class="mt-3">Confusion Matrix</h6>
+                        <div class="confusion-matrix">
+                            <div class="row">
+                                <div class="col-6 text-center"></div>
+                                <div class="col-3 text-center"><small>Predicted<br>Legit</small></div>
+                                <div class="col-3 text-center"><small>Predicted<br>Fraud</small></div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-3 text-end"><small>Actual<br>Legit</small></div>
+                                <div class="col-3 text-center"><div class="confusion-cell tn">{{ metrics.confusion_matrix.0.0 }}</div></div>
+                                <div class="col-3 text-center"><div class="confusion-cell fp">{{ metrics.confusion_matrix.0.1 }}</div></div>
+                            </div>
+                            <div class="row mt-2">
+                                <div class="col-3 text-end"><small>Actual<br>Fraud</small></div>
+                                <div class="col-3 text-center"><div class="confusion-cell fn">{{ metrics.confusion_matrix.1.0 }}</div></div>
+                                <div class="col-3 text-center"><div class="confusion-cell tp">{{ metrics.confusion_matrix.1.1 }}</div></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        
+        <!-- Explanation Section -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <h5><i class="fas fa-info-circle me-2"></i>Understanding the Metrics</h5>
+            </div>
+            <div class="card-body">
+                <div class="row">
+                    <div class="col-md-3">
+                        <strong>Accuracy</strong>
+                        <p class="text-muted small">Overall correctness: (TP+TN)/(Total)</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Precision</strong>
+                        <p class="text-muted small">Of flagged fraud, how many were correct: TP/(TP+FP)</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>Recall</strong>
+                        <p class="text-muted small">Of actual fraud, how many were caught: TP/(TP+FN)</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>F1-Score</strong>
+                        <p class="text-muted small">Harmonic mean of precision and recall</p>
+                    </div>
+                </div>
+                <div class="row mt-2">
+                    <div class="col-md-3">
+                        <strong>ROC-AUC</strong>
+                        <p class="text-muted small">Ability to distinguish between classes</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>TN (True Negative)</strong>
+                        <p class="text-muted small">Legit correctly identified</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>FP (False Positive)</strong>
+                        <p class="text-muted small">Legit incorrectly flagged as fraud</p>
+                    </div>
+                    <div class="col-md-3">
+                        <strong>FN (False Negative)</strong>
+                        <p class="text-muted small">Fraud missed by the model</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    {% else %}
+        <div class="alert alert-warning">
+            <i class="fas fa-exclamation-triangle me-2"></i>
+            No model training results found. Please run SMOTE training first.
+        </div>
+    {% endif %}
+    
+    <div class="mt-4 mb-4">
+        <a href="{% url 'upload_dataset' %}" class="btn btn-primary">
+            <i class="fas fa-upload me-1"></i>Upload New Dataset
+        </a>
+        <a href="{% url 'smote_results' %}" class="btn btn-info">
+            <i class="fas fa-chart-bar me-1"></i>SMOTE Results
+        </a>
+        <a href="{% url 'dashboard' %}" class="btn btn-secondary">
+            <i class="fas fa-chart-line me-1"></i>Fraud Dashboard
+        </a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+    // Performance Comparison Chart
+    const ctx1 = document.getElementById('performanceChart').getContext('2d');
+    const chartData = {{ chart_data|safe }};
+    
+    const modelNames = Object.keys(chartData);
+    const metrics = ['accuracy', 'precision', 'recall', 'f1_score', 'roc_auc'];
+    const metricLabels = ['Accuracy', 'Precision', 'Recall', 'F1-Score', 'ROC-AUC'];
+    
+    const datasets = metrics.map((metric, index) => ({
+        label: metricLabels[index],
+        data: modelNames.map(name => chartData[name][metric]),
+        backgroundColor: `hsla(${index * 72}, 70%, 50%, 0.6)`,
+        borderColor: `hsl(${index * 72}, 70%, 40%)`,
+        borderWidth: 1
+    }));
+    
+    new Chart(ctx1, {
+        type: 'bar',
+        data: {
+            labels: modelNames.map(n => n.replace('_', ' ').toUpperCase()),
+            datasets: datasets
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: { display: true, text: 'Percentage (%)' }
+                },
+                x: {
+                    title: { display: true, text: 'Models' }
+                }
+            },
+            plugins: {
+                legend: { position: 'top' },
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}: ${ctx.raw.toFixed(2)}%` } }
+            }
+        }
+    });
+    
+    // ROC Curves Chart
+    const ctx2 = document.getElementById('rocChart').getContext('2d');
+    const rocData = {{ roc_data|safe }};
+    
+    const rocDatasets = Object.keys(rocData).map((name, index) => ({
+        label: `${name.replace('_', ' ').toUpperCase()} (AUC: ${(rocData[name].auc * 100).toFixed(2)}%)`,
+        data: rocData[name].tpr.map((tpr, i) => ({ x: rocData[name].fpr[i], y: tpr })),
+        borderColor: `hsl(${index * 120}, 70%, 50%)`,
+        backgroundColor: 'transparent',
+        borderWidth: 2,
+        fill: false,
+        tension: 0.1
+    }));
+    
+    // Add diagonal reference line
+    rocDatasets.push({
+        label: 'Random Classifier (AUC: 50%)',
+        data: [{ x: 0, y: 0 }, { x: 1, y: 1 }],
+        borderColor: '#aaa',
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderDash: [5, 5],
+        fill: false
+    });
+    
+    new Chart(ctx2, {
+        type: 'scatter',
+        data: { datasets: rocDatasets },
+        options: {
+            responsive: true,
+            maintainAspectRatio: true,
+            scales: {
+                x: {
+                    title: { display: true, text: 'False Positive Rate (1 - Specificity)' },
+                    min: 0,
+                    max: 1
+                },
+                y: {
+                    title: { display: true, text: 'True Positive Rate (Sensitivity)' },
+                    min: 0,
+                    max: 1
+                }
+            },
+            plugins: {
+                tooltip: { callbacks: { label: (ctx) => `${ctx.dataset.label}` } }
+            }
+        }
+    });
+</script>
+{% endblock %}

@@ -10,18 +10,19 @@ class CustomerRegistrationForm(UserCreationForm):
     date_of_birth = forms.DateField(widget=forms.DateInput(attrs={'type': 'date'}))
     id_number = forms.CharField(max_length=50, label='National ID Number')
     profile_image = forms.ImageField(required=False, label='Profile Picture')  # extra field
+    # ... existing fields ...
+    id_proof = forms.ImageField(required=False, label='ID Proof (upload)')
+    address_proof = forms.ImageField(required=False, label='Address Proof (upload)')
 
-    class Meta:
+    class Meta(UserCreationForm.Meta):
         model = User
-        fields = ('username', 'email', 'password1', 'password2', 'phone', 'address', 'date_of_birth', 'id_number')
-        # profile_image is not included here
+        fields = ('username', 'email', 'password1', 'password2', 'phone', 'address', 'date_of_birth', 'id_number', 'profile_image', 'id_proof', 'address_proof')
 
     def save(self, commit=True):
         user = super().save(commit=False)
         user.email = self.cleaned_data['email']
         if commit:
             user.save()
-            # Create customer with all fields, including profile_image
             customer = Customer(
                 user=user,
                 phone=self.cleaned_data['phone'],
@@ -29,6 +30,8 @@ class CustomerRegistrationForm(UserCreationForm):
                 date_of_birth=self.cleaned_data['date_of_birth'],
                 id_number=self.cleaned_data['id_number'],
                 profile_image=self.cleaned_data.get('profile_image'),
+                id_proof=self.cleaned_data.get('id_proof'),
+                address_proof=self.cleaned_data.get('address_proof'),
             )
             customer.save()
         return user

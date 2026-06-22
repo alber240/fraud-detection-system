@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h4><i class="fas fa-search me-2"></i>Transaction Review</h4>
+                </div>
+                <div class="card-body">
+                    <div class="alert alert-{% if risk_level == 'High' %}danger{% elif risk_level == 'Medium' %}warning{% else %}info{% endif %}">
+                        <strong>Risk Level: {{ risk_level }}</strong>
+                        <br>Probability Score: {{ transaction.fraud_probability|floatformat:1 }}%
+                    </div>
+                    
+                    <table class="table table-bordered">
+                        <tr>
+                            <th width="30%">Transaction ID</th>
+                            <td>{{ transaction.transaction_id }}</td>
+                         </tr>
+                        <tr>
+                            <th>Amount</th>
+                            <td class="fw-bold">${{ transaction.amount|floatformat:2 }}</td>
+                         </tr>
+                        <tr>
+                            <th>Transaction Type</th>
+                            <td>{{ transaction.transaction_type|title }}</td>
+                         </tr>
+                        <tr>
+                            <th>Date & Time</th>
+                            <td>{{ transaction.timestamp|date:"Y-m-d H:i:s" }}</td>
+                         </tr>
+                        <tr>
+                            <th>Description</th>
+                            <td>{{ transaction.description|default:"-" }}</td>
+                         </tr>
+                        <tr>
+                            <th>From Account</th>
+                            <td>{{ transaction.from_account.account_number|default:"-" }}</td>
+                         </tr>
+                        <tr>
+                            <th>To Account</th>
+                            <td>{{ transaction.to_account.account_number|default:"-" }}</td>
+                         </tr>
+                        <tr>
+                            <th>Fraud Prediction</th>
+                            <td>{% if transaction.fraud_prediction %}<span class="badge bg-danger">Fraud</span>{% else %}<span class="badge bg-success">Legit</span>{% endif %}</td>
+                         </tr>
+                        <tr>
+                            <th>Fraud Probability</th>
+                            <td>{{ transaction.fraud_probability|floatformat:1 }}%</td>
+                         </tr>
+                    </table>
+                    
+                    <h5 class="mt-4">Feature Engineering Data</h5>
+                    <table class="table table-sm">
+                        <tr>
+                            <th>Time-Based</th>
+                            <td>Hour: {{ transaction.transaction_hour|default:"-" }} | Day: {{ transaction.transaction_day_of_week|default:"-" }} | Days since last: {{ transaction.days_since_last_transaction|default:"-" }}</td>
+                         </tr>
+                        <tr>
+                            <th>Amount-Based</th>
+                            <td>Ratio to Avg: {{ transaction.amount_ratio_to_avg|floatformat:2|default:"-" }}x | Deviation: {{ transaction.amount_deviation_std|floatformat:2|default:"-" }}σ</td>
+                         </tr>
+                        <tr>
+                            <th>Cumulative</th>
+                            <td>Count (24h): {{ transaction.transaction_count_last_24h|default:"-" }} | Value (24h): ${{ transaction.transaction_value_last_24h|default:"0"|floatformat:2 }}</td>
+                         </tr>
+                        <tr>
+                            <th>Recency</th>
+                            <td>Hours since login: {{ transaction.hours_since_last_login|floatformat:1|default:"-" }}h</td>
+                         </tr>
+                    </table>
+                    
+                    <hr>
+                    
+                    <form method="post">
+                        {% csrf_token %}
+                        
+                        <div class="mb-3">
+                            <label class="form-label"><strong>Review Notes</strong></label>
+                            <textarea name="notes" class="form-control" rows="3" placeholder="Add notes about this transaction..."></textarea>
+                        </div>
+                        
+                        <div class="mb-3" id="blockReasonDiv" style="display: none;">
+                            <label class="form-label"><strong>Block Reason</strong></label>
+                            <textarea name="block_reason" class="form-control" rows="2" placeholder="Why is this transaction being blocked?"></textarea>
+                        </div>
+                        
+                        <div class="d-flex justify-content-between">
+                            <a href="{% url 'review_queue' %}" class="btn btn-secondary">Cancel</a>
+                            <div>
+                                <button type="submit" name="action" value="approve" class="btn btn-success" onclick="return confirm('Approve this transaction?')">
+                                    <i class="fas fa-check me-1"></i>Approve
+                                </button>
+                                <button type="submit" name="action" value="investigate" class="btn btn-info" onclick="return confirm('Mark for investigation?')">
+                                    <i class="fas fa-search me-1"></i>Investigate
+                                </button>
+                                <button type="submit" name="action" value="block" class="btn btn-danger" id="blockBtn" onclick="return confirm('Block this transaction?')">
+                                    <i class="fas fa-ban me-1"></i>Block
+                                </button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5><i class="fas fa-history me-2"></i>Similar Transactions</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush">
+                        {% for t in similar_transactions %}
+                        <div class="list-group-item">
+                            <small>{{ t.timestamp|date:"Y-m-d H:i" }}</small>
+                            <br><strong>${{ t.amount|floatformat:2 }}</strong>
+                            <span class="badge {% if t.fraud_prediction %}bg-danger{% else %}bg-success{% endif %} float-end">
+                                {% if t.fraud_prediction %}Fraud{% else %}Legit{% endif %}
+                            </span>
+                        </div>
+                        {% empty %}
+                        <div class="list-group-item text-center text-muted">
+                            No similar transactions found.
+                        </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5><i class="fas fa-info-circle me-2"></i>Review Guidelines</h5>
+                </div>
+                <div class="card-body">
+                    <ul class="small">
+                        <li><strong>Approve</strong> - Transaction is legitimate</li>
+                        <li><strong>Block</strong> - Transaction is fraudulent, will be prevented</li>
+                        <li><strong>Investigate</strong> - Needs further review</li>
+                        <li>High risk (>80%) typically indicates fraud</li>
+                        <li>Check feature engineering data for anomalies</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.getElementById('blockBtn').addEventListener('click', function(e) {
+        document.getElementById('blockReasonDiv').style.display = 'block';
+    });
+</script>
+{% endblock %}

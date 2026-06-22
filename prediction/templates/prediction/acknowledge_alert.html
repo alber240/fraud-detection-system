@@ -2,16 +2,88 @@
 
 {% block content %}
 <div class="container mt-4">
-    <h2>Acknowledge Alert</h2>
-    <p>Transaction: {{ alert.transaction.transaction_id }} (Amount: ${{ alert.transaction.amount }})</p>
-    <form method="post">
-        {% csrf_token %}
-        <div class="mb-3">
-            <label for="notes" class="form-label">Resolution Notes</label>
-            <textarea name="notes" id="notes" class="form-control" rows="3"></textarea>
+    <div class="card">
+        <div class="card-header bg-danger text-white">
+            <h4><i class="fas fa-bell me-2"></i>Acknowledge Fraud Alert</h4>
         </div>
-        <button type="submit" class="btn btn-success">Confirm Acknowledge</button>
-        <a href="{% url 'alert_list' %}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <div class="card-body">
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <p><strong>Transaction ID:</strong><br>
+                    {% if alert.banking_transaction %}
+                        {{ alert.banking_transaction.transaction_id }}
+                    {% elif alert.demo_transaction %}
+                        {{ alert.demo_transaction.transaction_id }}
+                    {% else %}
+                        N/A
+                    {% endif %}
+                    </p>
+                    
+                    <p><strong>Amount:</strong><br>
+                    {% if alert.banking_transaction %}
+                        ${{ alert.banking_transaction.amount|floatformat:2 }}
+                    {% elif alert.demo_transaction %}
+                        ${{ alert.demo_transaction.amount|floatformat:2 }}
+                    {% else %}
+                        -
+                    {% endif %}
+                    </p>
+                    
+                    <p><strong>Risk Score:</strong><br>
+                    {% if alert.banking_transaction %}
+                        <span class="badge bg-danger">{{ alert.banking_transaction.fraud_probability|floatformat:1 }}%</span>
+                    {% elif alert.demo_transaction %}
+                        <span class="badge bg-danger">{{ alert.demo_transaction.probability|floatformat:1 }}%</span>
+                    {% else %}
+                        -
+                    {% endif %}
+                    </p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Transaction Type:</strong><br>
+                    {% if alert.banking_transaction %}
+                        {{ alert.banking_transaction.transaction_type|title }}
+                    {% elif alert.demo_transaction %}
+                        Demo Transaction
+                    {% else %}
+                        -
+                    {% endif %}
+                    </p>
+                    
+                    <p><strong>Timestamp:</strong><br>
+                    {% if alert.banking_transaction %}
+                        {{ alert.banking_transaction.timestamp|date:"Y-m-d H:i:s" }}
+                    {% elif alert.demo_transaction %}
+                        {{ alert.demo_transaction.timestamp|date:"Y-m-d H:i:s" }}
+                    {% else %}
+                        -
+                    {% endif %}
+                    </p>
+                    
+                    <p><strong>Created:</strong><br>
+                    {{ alert.created_at|date:"Y-m-d H:i:s" }}
+                    </p>
+                </div>
+            </div>
+            
+            <hr>
+            
+            <form method="post">
+                {% csrf_token %}
+                <div class="mb-3">
+                    <label for="notes" class="form-label">Resolution Notes</label>
+                    <textarea name="notes" id="notes" class="form-control" rows="4" placeholder="Describe how this alert was resolved..."></textarea>
+                </div>
+                <div class="d-flex justify-content-between">
+                    <a href="{% url 'alert_list' %}" class="btn btn-secondary">
+                        <i class="fas fa-arrow-left me-1"></i>Cancel
+                    </a>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check me-1"></i>Acknowledge & Resolve
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
 </div>
 {% endblock %}

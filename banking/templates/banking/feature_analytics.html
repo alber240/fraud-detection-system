@@ -1,0 +1,79 @@
+ {% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Feature Engineering Analytics</h2>
+    <p>Online Banking Specific Features Required by Supervisor</p>
+    
+    <div class="row mt-4">
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Time-Based Features</div>
+                <div class="card-body">
+                    <p><strong>Average Transaction Hour:</strong> {{ stats.avg_hour|floatformat:1 }}:00</p>
+                    <p><strong>Features Implemented:</strong></p>
+                    <ul>
+                        <li>Transaction Hour (0-23)</li>
+                        <li>Transaction Day of Week</li>
+                        <li>Days Since Last Transaction</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Amount-Based Features</div>
+                <div class="card-body">
+                    <p><strong>Average Ratio to User Avg:</strong> {{ stats.avg_ratio|floatformat:2 }}x</p>
+                    <p><strong>Features Implemented:</strong></p>
+                    <ul>
+                        <li>Ratio to User's Average Amount</li>
+                        <li>Standard Deviation Deviation</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">Cumulative Features</div>
+                <div class="card-body">
+                    <p><strong>Avg Transactions Last 24h:</strong> {{ stats.avg_daily_count|floatformat:1 }}</p>
+                    <p><strong>Features Implemented:</strong></p>
+                    <ul>
+                        <li>Transaction Count (Last 24h)</li>
+                        <li>Transaction Value (Last 24h)</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mt-4">
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Recency Features</div>
+                <div class="card-body">
+                    <p><strong>Features Implemented:</strong></p>
+                    <ul>
+                        <li>Hours Since Last Login</li>
+                        <li>Days Since Last Password Change</li>
+                        <li>Days Since Profile Update</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header">Fraud Insights</div>
+                <div class="card-body">
+                    <p><strong>High Ratio (>3x avg) Flagged as Fraud:</strong> {{ stats.fraud_ratio_high }}</p>
+                    <p><strong>Total Transactions Analyzed:</strong> {{ stats.total_transactions }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
